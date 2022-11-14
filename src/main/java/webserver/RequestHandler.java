@@ -5,7 +5,9 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
@@ -30,6 +32,22 @@ public class RequestHandler extends Thread {
 
             String res = readContents(rd);
             String requestUrl = HttpRequestUtils.getUrl(res);
+
+            if(requestUrl.contains("?")) {
+
+                String url = requestUrl.substring(0, requestUrl.indexOf("?"));
+                String reqeustParams = requestUrl.substring(requestUrl.indexOf("?")+1);
+
+                Map<String, String> paramMap = HttpRequestUtils.parseValues(reqeustParams, "&");
+                User user = new User(
+                        paramMap.get("userId"),
+                        paramMap.get("password"),
+                        paramMap.get("name"),
+                        paramMap.get("email")
+                        );
+                System.out.println(user);
+            }
+
             byte[]  bytes = Files.readAllBytes(Paths.get("./webapp",requestUrl));
 
             DataOutputStream dos = new DataOutputStream(out);
