@@ -1,13 +1,15 @@
 package webserver;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -23,14 +25,31 @@ public class RequestHandler extends Thread {
                 connection.getPort());
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
+            InputStreamReader reader = new InputStreamReader(in);
+            BufferedReader rd = new BufferedReader(reader);
+
+            String res = readContents(rd);
+            String requestUrl = HttpRequestUtils.getUrl(res);
+            byte[]  bytes = Files.readAllBytes(Paths.get("./webapp",requestUrl));
+
             DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = "Hello World".getBytes();
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            response200Header(dos, bytes.length);
+            responseBody(dos, bytes);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private String readContents(BufferedReader rd) throws IOException {
+        String line = rd.readLine();
+        String res = "";
+        while(!"".equals(line)){
+            res = res + line + "\n";
+            line = rd.readLine();
+
+            if(line == null) break;
+        }
+        return res;
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {

@@ -49,6 +49,10 @@ public class HttpRequestUtils {
         return new Pair(tokens[0], tokens[1]);
     }
 
+    public static String getUrl(String url){
+        String[] tokens = url.split("\n")[0].split(" ");
+        return tokens[1];
+    }
     public static Pair parseHeader(String header) {
         return getKeyValue(header, ": ");
     }
