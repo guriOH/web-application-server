@@ -18,7 +18,9 @@ import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
-    public static final String WEBAPP = "./webapp";
+    private static final String WEBAPP = "./webapp";
+    private static final String USER_LOGIN_FAILED_HTML = "/user/login_failed.html";
+    private static final String INDEX_HTML = "/index.html";
 
     private Socket connection;
 
@@ -57,16 +59,16 @@ public class RequestHandler extends Thread {
                     User user = makeUser(paramMap);
                     // Insert new user
                     DataBase.addUser(user);
-                    HttpResponseUtils.response302Header(dos,"/index.html");
+                    HttpResponseUtils.response302Header(dos,INDEX_HTML);
                 }else if(requestUrl.equals("/user/login")){
                     String body = getRequestBody(rd, HttpRequestUtils.getSpecificLines(contents,"Content-Length:"));
                     Map<String, String> paramMap = HttpRequestUtils.parseValues(body, "&");
 
                     User user = DataBase.findUserById(paramMap.get("userId"));
                     if(Objects.isNull(user)){
-                        HttpResponseUtils.responseLogin(dos, "false","/user/login_failed.html");
+                        HttpResponseUtils.responseLogin(dos, "false", USER_LOGIN_FAILED_HTML);
                     }else{
-                        HttpResponseUtils.responseLogin(dos,"true","/index.html");
+                        HttpResponseUtils.responseLogin(dos,"true", INDEX_HTML);
                     }
                 }
             }
