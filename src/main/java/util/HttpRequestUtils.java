@@ -18,7 +18,7 @@ public class HttpRequestUtils {
     }
 
     /**
-     * @param 쿠키
+     * @param
      *            값은 name1=value1; name2=value2 형식임
      * @return
      */
@@ -49,7 +49,15 @@ public class HttpRequestUtils {
         return new Pair(tokens[0], tokens[1]);
     }
 
-    public static String getUrl(String url){
+    public static String getSpecificLines(String contents, String regex) {
+        if(contents.indexOf(regex) > -1){
+            return contents.substring(contents.indexOf(regex),contents.indexOf("\n",contents.indexOf(regex)));
+        }
+
+        return null;
+    }
+
+    public static String parseUrl(String url){
         String[] tokens = url.split("\n")[0].split(" ");
         return tokens[1];
     }
