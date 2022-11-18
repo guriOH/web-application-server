@@ -10,12 +10,9 @@ import java.io.IOException;
 public class HttpResponseUtils {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
-    public static void responseLogin(DataOutputStream dos, String result, String url) {
+    public static void responseLogin(DataOutputStream dos, boolean result, String url) {
         try {
-            dos.writeBytes("HTTP/1.1 302 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-//            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("Location: "+url+"\r\n");
+            response302Header(dos,url);
             dos.writeBytes("Set-Cookie: logined="+result+";"+"Path=/\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
@@ -23,10 +20,10 @@ public class HttpResponseUtils {
         }
     }
 
-    public static void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    public static void response200Header(DataOutputStream dos, String contentType, int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: "+contentType+";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
@@ -38,8 +35,7 @@ public class HttpResponseUtils {
         try {
             dos.writeBytes("HTTP/1.1 302 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Location: "+redirectUrl);
-            dos.writeBytes("\r\n");
+            dos.writeBytes("Location: "+redirectUrl+"\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }

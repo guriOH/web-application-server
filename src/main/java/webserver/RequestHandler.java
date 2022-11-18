@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import util.HttpResponseUtils;
+import util.HttpTemplate;
 import util.IOUtils;
 
 public class RequestHandler extends Thread {
@@ -40,17 +41,16 @@ public class RequestHandler extends Thread {
             String contents = readContents(rd);
             String requestUrl = HttpRequestUtils.parseUrl(contents);
 
-            Map<String, String> cookies = HttpRequestUtils.parseCookies(
-                    HttpRequestUtils.parseHeader(
-                        HttpRequestUtils.getSpecificLines(contents,"Cookie:")
-                    ).getValue()
-            );
+            Map<String, String> cookies = getCookies(contents);
 
             byte[] bytes = new byte[0];
 
             if(requestUrl.contains(".html")){
                 bytes = Files.readAllBytes(Paths.get(WEBAPP,requestUrl));
-                HttpResponseUtils.response200Header(dos, bytes.length);
+                HttpResponseUtils.response200Header(dos,"text/html", bytes.length);
+            }else if(requestUrl.contains(".css")){
+                bytes = Files.readAllBytes(Paths.get(WEBAPP,requestUrl));
+                HttpResponseUtils.response200Header(dos,"text/css", bytes.length);
             }else{
                 if(requestUrl.equals("/user/create")){
                     String body = getRequestBody(rd, HttpRequestUtils.getSpecificLines(contents,"Content-Length:"));
@@ -66,9 +66,22 @@ public class RequestHandler extends Thread {
 
                     User user = DataBase.findUserById(paramMap.get("userId"));
                     if(Objects.isNull(user)){
-                        HttpResponseUtils.responseLogin(dos, "false", USER_LOGIN_FAILED_HTML);
+                        HttpResponseUtils.responseLogin(dos, false, USER_LOGIN_FAILED_HTML);
                     }else{
-                        HttpResponseUtils.responseLogin(dos,"true", INDEX_HTML);
+                        HttpResponseUtils.responseLogin(dos,true, INDEX_HTML);
+                    }
+                }else if(requestUrl.equals("/user/list")){
+                    if(cookies.get("logined").equals("true")){
+                        StringBuilder sb = new StringBuilder("<ul>");
+                        for(User user : DataBase.findAll()){
+                            sb.append("<li>");
+                            sb.append(user.getName());
+                            sb.append("</li>");
+                        }
+                        sb.append("</ul>");
+
+                        bytes = HttpTemplate.getTemplate("사용자목록",sb.toString()).getBytes();
+                        HttpResponseUtils.response200Header(dos,"text/html", bytes.length);
                     }
                 }
             }
@@ -76,6 +89,14 @@ public class RequestHandler extends Thread {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private Map<String, String> getCookies(String contents) {
+        return HttpRequestUtils.parseCookies(
+                HttpRequestUtils.parseHeader(
+                        HttpRequestUtils.getSpecificLines(contents, "Cookie:")
+                ).getValue()
+        );
     }
 
     private String getRequestBody(BufferedReader rd, String line) throws IOException {
