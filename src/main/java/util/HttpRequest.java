@@ -15,9 +15,6 @@ public class HttpRequest {
 
     private RequestLine requestLine;
 
-
-
-
     public HttpRequest(InputStream in) throws IOException {
         try{
             BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
@@ -50,15 +47,7 @@ public class HttpRequest {
         {
             log.error(e.getMessage());
         }
-//        InputStreamReader reader = new InputStreamReader(in);
-//        BufferedReader rd = new BufferedReader(reader);
-//
-//        String requestString = this.readContents(rd);
-//
-//        this.readMethod(requestString);
-//        this.readPath(requestString);
-//        this.readHeaders(requestString);
-//        this.readParams(requestString);
+
 
     }
 
@@ -70,40 +59,19 @@ public class HttpRequest {
         return requestLine.getPath();
     }
 
-
-    private void readHeaders(String requestString) {
-        headers = new HashMap<String,String>();
-        String[] token = requestString.split("\n");
-        for (String line : token) {
-            if(line.contains(":")){
-                String[] data = line.split(":");
-
-                headers.put(data[0].trim(),data[1].trim());
-            }
-        }
+    public HttpCookie getCookie(){
+        return new HttpCookie(getHeader("Cookie"));
     }
-
-
-    private String readContents(BufferedReader rd) throws IOException {
-        String line = rd.readLine();
-        String requestString = "";
-        while(!"".equals(line)){
-            requestString = requestString + line + "\n";
-            line = rd.readLine();
-
-            if(line == null) break;
-        }
-
-        requestString = requestString+ rd.readLine();
-
-        return requestString;
-    }
-
     public String getHeader(String element) {
         return headers.get(element);
     }
 
     public String getParameter(String userId) {
         return params.get(userId);
+    }
+
+
+    public HttpSession getSession(){
+        return HttpSessions.getSession(getCookie().getCookie("JSESSIONID"));
     }
 }

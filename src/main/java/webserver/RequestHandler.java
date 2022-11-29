@@ -4,10 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import db.DataBase;
 import model.User;
@@ -47,6 +44,9 @@ public class RequestHandler extends Thread {
             HttpRequest request = new HttpRequest(in);
             HttpResponse response = new HttpResponse(out);
 
+            if(request.getCookie().getCookie("JSESSIONID")==null){
+                response.addHeader("Set-Cookie","JSESSIONID="+ UUID.randomUUID());
+            }
 
             Controller controller = RequestMapping.getController(request.getPath());
 
@@ -154,6 +154,11 @@ public class RequestHandler extends Thread {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private String getSessionId(String cookieValue) {
+        Map<String, String> cookies = HttpRequestUtils.parseCookies(cookieValue);
+        return cookies.get("JSESSIONID");
     }
 
     private void listUser(HttpRequest request, HttpResponse response) {

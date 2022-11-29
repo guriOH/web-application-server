@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequest;
 import util.HttpResponse;
+import util.HttpSession;
 
 public class LoginController implements Controller{
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
@@ -14,7 +15,10 @@ public class LoginController implements Controller{
         User user = DataBase.findUserById(request.getParameter("userId"));
         if(user!=null){
             if(user.login(request.getParameter("password"))){
-                response.addHeader("Set-Cookie","logined=true");
+//                response.addHeader("Set-Cookie","logined=true");
+                HttpSession session = request.getSession();
+                session.setAttributes("user",user);
+
                 response.sendRedirect("/index.html");
             }else{
                 response.sendRedirect("/user/login_failed.html");
